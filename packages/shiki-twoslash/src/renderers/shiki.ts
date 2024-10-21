@@ -1,7 +1,8 @@
 import { shouldBeHighlightable, shouldHighlightLine, escapeHtml, Meta } from "../utils"
 import { HtmlRendererOptions, preOpenerFromRenderingOptsWithExtras } from "./plain"
+import shiki from "shiki"
 
-type Lines = import("shiki").IThemedToken[][]
+type Lines = shiki.IThemedToken[][]
 
 export function defaultShikiRenderer(lines: Lines, options: HtmlRendererOptions, meta: Meta) {
   let html = ""
@@ -29,7 +30,19 @@ export function defaultShikiRenderer(lines: Lines, options: HtmlRendererOptions,
       html += prefix
 
       l.forEach(token => {
-        html += `<span style="color: ${token.color}">${escapeHtml(token.content)}</span>`
+        const cssDeclarations = [`color: ${token.color}`];
+        if (token.fontStyle) {
+          if (token.fontStyle & shiki.FontStyle.Italic) {
+            cssDeclarations.push('font-style: italic');
+          }
+          if (token.fontStyle & shiki.FontStyle.Bold) {
+            cssDeclarations.push('font-weight: bold');
+          }
+          if (token.fontStyle & shiki.FontStyle.Underline) {
+            cssDeclarations.push('text-decoration: underline');
+          }
+        }
+        html += `<span style="${cssDeclarations.join('; ')}">${escapeHtml(token.content)}</span>`
       })
       html += `</div>`
     }
